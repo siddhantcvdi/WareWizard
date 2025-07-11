@@ -1,11 +1,14 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
-import { ArrowLeft, Package, Plus, Grid3X3, BarChart3, Settings } from "lucide-react"
+import { ArrowLeft, Package, Plus, Grid3X3, BarChart3, Settings, Upload, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Progress } from "@/components/ui/progress"
 import type { Warehouse, Section, GoodsItem } from "@/app/page"
 import WarehouseMap from "@/components/warehouse-map"
 
@@ -113,20 +116,110 @@ interface WarehouseDetailsProps {
   warehouse: Warehouse
   onBack: () => void
   onSectionSelect: (section: Section) => void
+  inventoryConnected?: boolean
+  onInventoryConnectionChange?: (connected: boolean) => void
 }
 
-export default function WarehouseDetails({ warehouse, onBack, onSectionSelect }: WarehouseDetailsProps) {
+export default function WarehouseDetails({
+  warehouse,
+  onBack,
+  onSectionSelect,
+  inventoryConnected: externalInventoryConnected,
+  onInventoryConnectionChange,
+}: WarehouseDetailsProps) {
   const [goods] = useState<GoodsItem[]>(sampleGoods)
   const [sections] = useState<Section[]>(generateSections(sampleGoods))
-  const [inventoryConnected, setInventoryConnected] = useState(false)
+  const [localInventoryConnected, setLocalInventoryConnected] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
+  const [connectionProgress, setConnectionProgress] = useState(0)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
-  const handleConnectInventory = () => {
-    setInventoryConnected(true)
+  // Use external state if provided, otherwise use local state
+  const inventoryConnected =
+    externalInventoryConnected !== undefined ? externalInventoryConnected : localInventoryConnected
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedFile(file)
+      console.log("Inventory file selected:", file.name)
+    }
+  }
+
+  const handleConnectInventory = async () => {
+    if (!selectedFile) {
+      alert("Please select an inventory file first")
+      return
+    }
+
+    setIsConnecting(true)
+    setConnectionProgress(0)
+
+    // Simulate file processing and connection
+    for (let i = 0; i <= 100; i += 10) {
+      setConnectionProgress(i)
+      await new Promise((resolve) => setTimeout(resolve, 300))
+    }
+
+    // Update inventory connection state
+    if (onInventoryConnectionChange) {
+      onInventoryConnectionChange(true)
+    } else {
+      setLocalInventoryConnected(true)
+    }
+
+    setIsConnecting(false)
+    setConnectionProgress(0)
   }
 
   const totalCapacity = sections.reduce((sum, section) => sum + section.capacity, 0)
   const totalLoad = sections.reduce((sum, section) => sum + section.currentLoad, 0)
   const utilizationRate = Math.round((totalLoad / totalCapacity) * 100)
+
+  if (isConnecting) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b bg-white">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Package className="h-6 w-6 text-blue-600" />
+                <h1 className="text-xl font-semibold">Connecting Inventory System</h1>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="container mx-auto px-4 py-8 max-w-2xl">
+          <Card>
+            <CardHeader>
+              <CardTitle>Processing Inventory Connection</CardTitle>
+              <CardDescription>Analyzing inventory data and generating optimal sections...</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Progress value={connectionProgress} className="w-full" />
+              <p className="text-sm text-muted-foreground text-center">
+                {connectionProgress < 30
+                  ? "Reading inventory file..."
+                  : connectionProgress < 60
+                    ? "Analyzing product categories..."
+                    : connectionProgress < 90
+                      ? "Generating optimal sections..."
+                      : "Finalizing connection..."}
+              </p>
+              {selectedFile && (
+                <div className="text-center">
+                  <Badge variant="outline" className="text-xs">
+                    Processing: {selectedFile.name}
+                  </Badge>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -149,6 +242,12 @@ export default function WarehouseDetails({ warehouse, onBack, onSectionSelect }:
             <div className="flex items-center space-x-2">
               <Badge variant="outline">{warehouse.id}</Badge>
               <Badge variant="default">{warehouse.status}</Badge>
+              {inventoryConnected && (
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Inventory Connected
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -162,7 +261,7 @@ export default function WarehouseDetails({ warehouse, onBack, onSectionSelect }:
               <div className="flex items-center space-x-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
                 <div>
-                  <div className="text-2xl font-bold">{sections.length}</div>
+                  <div className="text-2xl font-bold">{inventoryConnected ? sections.length : 0}</div>
                   <p className="text-sm text-muted-foreground">Active Sections</p>
                 </div>
               </div>
@@ -173,7 +272,7 @@ export default function WarehouseDetails({ warehouse, onBack, onSectionSelect }:
               <div className="flex items-center space-x-2">
                 <Package className="h-5 w-5 text-green-600" />
                 <div>
-                  <div className="text-2xl font-bold">{goods.length}</div>
+                  <div className="text-2xl font-bold">{inventoryConnected ? goods.length : 0}</div>
                   <p className="text-sm text-muted-foreground">Product Types</p>
                 </div>
               </div>
@@ -184,7 +283,7 @@ export default function WarehouseDetails({ warehouse, onBack, onSectionSelect }:
               <div className="flex items-center space-x-2">
                 <BarChart3 className="h-5 w-5 text-purple-600" />
                 <div>
-                  <div className="text-2xl font-bold">{utilizationRate}%</div>
+                  <div className="text-2xl font-bold">{inventoryConnected ? utilizationRate : 0}%</div>
                   <p className="text-sm text-muted-foreground">Space Utilization</p>
                 </div>
               </div>
@@ -193,7 +292,7 @@ export default function WarehouseDetails({ warehouse, onBack, onSectionSelect }:
           <Card>
             <CardContent className="p-6">
               <div>
-                <div className="text-2xl font-bold">{totalLoad.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{inventoryConnected ? totalLoad.toLocaleString() : 0}</div>
                 <p className="text-sm text-muted-foreground">Total Items</p>
               </div>
             </CardContent>
@@ -219,21 +318,58 @@ export default function WarehouseDetails({ warehouse, onBack, onSectionSelect }:
               <Card>
                 <CardHeader>
                   <CardTitle>Connect Inventory System</CardTitle>
-                  <CardDescription>
-                    Connect your existing inventory to organize goods into optimal sections
-                  </CardDescription>
+                  <CardDescription>Upload your inventory file to organize goods into optimal sections</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="text-center py-8">
                     <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">Ready to Organize Your Inventory</h3>
                     <p className="text-muted-foreground mb-6">
-                      We'll analyze your goods and create optimal section layouts for maximum efficiency
+                      Upload your inventory file and we'll analyze your goods to create optimal section layouts
                     </p>
-                    <Button onClick={handleConnectInventory} size="lg">
+                  </div>
+
+                  {/* File Upload Section */}
+                  <Card className="border-dashed border-2 hover:border-primary/50 transition-colors">
+                    <CardContent className="flex flex-col items-center justify-center p-8 space-y-4">
+                      <Upload className="h-12 w-12 text-muted-foreground" />
+                      <div className="text-center">
+                        <p className="text-lg font-medium">Upload Inventory File</p>
+                        <p className="text-sm text-muted-foreground">Supported formats: CSV, Excel (.xlsx), JSON</p>
+                      </div>
+
+                      {selectedFile && (
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <Badge variant="secondary" className="text-sm">
+                            {selectedFile.name}
+                          </Badge>
+                        </div>
+                      )}
+
+                      <input
+                        type="file"
+                        id="inventory-file"
+                        accept=".csv,.xlsx,.xls,.json"
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                      <Button variant="outline" onClick={() => document.getElementById("inventory-file")?.click()}>
+                        <Upload className="h-4 w-4 mr-2" />
+                        {selectedFile ? "Change File" : "Choose File"}
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <div className="text-center">
+                    <Button onClick={handleConnectInventory} size="lg" disabled={!selectedFile}>
                       <Plus className="h-4 w-4 mr-2" />
                       Connect Inventory & Generate Sections
                     </Button>
+                  </div>
+
+                  <div className="text-center text-sm text-muted-foreground">
+                    <p>Don't have an inventory file? We'll use sample data to demonstrate the system.</p>
                   </div>
                 </CardContent>
               </Card>

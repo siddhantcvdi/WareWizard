@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Upload, FileText, ImageIcon, Building, ArrowLeft } from "lucide-react"
+import { Upload, FileText, ImageIcon, Building, ArrowLeft, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 import type { Warehouse } from "@/app/page"
 
 interface WarehouseRegistrationProps {
@@ -31,9 +32,26 @@ export default function WarehouseRegistration({ onRegistrationComplete, onCancel
   })
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [blueprintFiles, setBlueprintFiles] = useState<File[]>([])
+  const [photoFiles, setPhotoFiles] = useState<File[]>([])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validate required fields
+    if (
+      !formData.warehouseId ||
+      !formData.warehouseName ||
+      !formData.location ||
+      !formData.warehouseType ||
+      !formData.length ||
+      !formData.width ||
+      !formData.height
+    ) {
+      alert("Please fill in all required fields")
+      return
+    }
+
     setIsSubmitting(true)
 
     // Simulate form submission and processing
@@ -63,6 +81,24 @@ export default function WarehouseRegistration({ onRegistrationComplete, onCancel
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleBlueprintUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    setBlueprintFiles(files)
+    console.log(
+      "Blueprints uploaded:",
+      files.map((f) => f.name),
+    )
+  }
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    setPhotoFiles(files)
+    console.log(
+      "Photos uploaded:",
+      files.map((f) => f.name),
+    )
   }
 
   if (isSubmitting) {
@@ -226,10 +262,46 @@ export default function WarehouseRegistration({ onRegistrationComplete, onCancel
                         <p className="text-sm font-medium">Upload Blueprints</p>
                         <p className="text-xs text-muted-foreground">PDF, DWG, or CAD files</p>
                       </div>
-                      <Button variant="outline" size="sm">
+
+                      {blueprintFiles.length > 0 && (
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <Badge variant="secondary" className="text-xs">
+                            {blueprintFiles.length} file{blueprintFiles.length !== 1 ? "s" : ""} selected
+                          </Badge>
+                        </div>
+                      )}
+
+                      <input
+                        type="file"
+                        id="blueprints"
+                        accept=".pdf,.dwg,.dxf,.cad"
+                        multiple
+                        className="hidden"
+                        onChange={handleBlueprintUpload}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById("blueprints")?.click()}
+                      >
                         <Upload className="h-4 w-4 mr-2" />
-                        Choose Files
+                        {blueprintFiles.length > 0 ? "Change Files" : "Choose Files"}
                       </Button>
+
+                      {blueprintFiles.length > 0 && (
+                        <div className="w-full mt-2">
+                          <p className="text-xs text-muted-foreground mb-1">Selected files:</p>
+                          <div className="space-y-1 max-h-20 overflow-y-auto">
+                            {blueprintFiles.map((file, index) => (
+                              <div key={index} className="text-xs bg-muted p-1 rounded truncate">
+                                {file.name}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -240,10 +312,46 @@ export default function WarehouseRegistration({ onRegistrationComplete, onCancel
                         <p className="text-sm font-medium">Upload Photos</p>
                         <p className="text-xs text-muted-foreground">Interior & exterior images</p>
                       </div>
-                      <Button variant="outline" size="sm">
+
+                      {photoFiles.length > 0 && (
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <Badge variant="secondary" className="text-xs">
+                            {photoFiles.length} image{photoFiles.length !== 1 ? "s" : ""} selected
+                          </Badge>
+                        </div>
+                      )}
+
+                      <input
+                        type="file"
+                        id="photos"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handlePhotoUpload}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById("photos")?.click()}
+                      >
                         <Upload className="h-4 w-4 mr-2" />
-                        Choose Images
+                        {photoFiles.length > 0 ? "Change Images" : "Choose Images"}
                       </Button>
+
+                      {photoFiles.length > 0 && (
+                        <div className="w-full mt-2">
+                          <p className="text-xs text-muted-foreground mb-1">Selected images:</p>
+                          <div className="space-y-1 max-h-20 overflow-y-auto">
+                            {photoFiles.map((file, index) => (
+                              <div key={index} className="text-xs bg-muted p-1 rounded truncate">
+                                {file.name}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -265,7 +373,20 @@ export default function WarehouseRegistration({ onRegistrationComplete, onCancel
                 <Button type="button" variant="outline" onClick={onCancel}>
                   Cancel
                 </Button>
-                <Button type="submit">Register Warehouse</Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    !formData.warehouseId ||
+                    !formData.warehouseName ||
+                    !formData.location ||
+                    !formData.warehouseType ||
+                    !formData.length ||
+                    !formData.width ||
+                    !formData.height
+                  }
+                >
+                  Register Warehouse
+                </Button>
               </div>
             </form>
           </CardContent>

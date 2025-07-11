@@ -60,6 +60,7 @@ export default function WalmartWarehouseSystem() {
   const [currentUser, setCurrentUser] = useState<{ name: string; role: string } | null>(null)
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null)
   const [selectedSection, setSelectedSection] = useState<Section | null>(null)
+  const [warehouseInventoryStates, setWarehouseInventoryStates] = useState<Record<string, boolean>>({})
   const [warehouses, setWarehouses] = useState<Warehouse[]>([
     {
       id: "WH-001",
@@ -111,6 +112,13 @@ export default function WalmartWarehouseSystem() {
     setCurrentView("warehouse-details")
   }
 
+  const handleInventoryConnectionChange = (warehouseId: string, connected: boolean) => {
+    setWarehouseInventoryStates((prev) => ({
+      ...prev,
+      [warehouseId]: connected,
+    }))
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {currentView === "login" && <LoginPage onLogin={handleLogin} />}
@@ -137,6 +145,8 @@ export default function WalmartWarehouseSystem() {
           warehouse={selectedWarehouse}
           onBack={handleBackToDashboard}
           onSectionSelect={handleSectionSelect}
+          inventoryConnected={warehouseInventoryStates[selectedWarehouse.id] || false}
+          onInventoryConnectionChange={(connected) => handleInventoryConnectionChange(selectedWarehouse.id, connected)}
         />
       )}
 
