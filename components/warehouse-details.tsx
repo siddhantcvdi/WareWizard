@@ -515,7 +515,7 @@ export default function WarehouseDetails({
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Settings className="h-5 w-5" />
-                  <span>Warehouse Settings</span>
+                  <span>Details</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
