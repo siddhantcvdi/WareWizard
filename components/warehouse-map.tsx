@@ -29,47 +29,41 @@ function WarehouseModel({ warehouse, sections }: { warehouse: Warehouse; section
       </ThreeBox>
 
       {/* Sections - Better space utilization and fixed rendering */}
-      {sections.map((section, index) => {
-        // Use actual section dimensions relative to warehouse with better scaling
-        const sectionLength = (section.dimensions.length / warehouse.dimensions.length) * warehouseLength * 0.9
-        const sectionWidth = (section.dimensions.width / warehouse.dimensions.width) * warehouseWidth * 0.9
-        const sectionHeight = section.dimensions.height / 10
-
-        // Better positioning - arrange sections to maximize space usage
-        const cols = 3
-        const rows = 2
-        const row = Math.floor(index / cols)
-        const col = index % cols
-
-        // Calculate positions to better fill warehouse space
-        const spacingX = (warehouseLength * 0.85) / cols
-        const spacingZ = (warehouseWidth * 0.85) / rows
-
-        const posX = (col - (cols - 1) / 2) * spacingX
-        const posZ = (row - (rows - 1) / 2) * spacingZ
-
-        const utilizationRate = section.currentLoad / section.capacity
-        const sectionColor = utilizationRate > 0.9 ? "#ef4444" : utilizationRate > 0.7 ? "#f59e0b" : "#10b981"
-
+      {/* Add more sections and increase their dimensions for a denser layout */}
+      {Array.from({ length: 8 }).map((_, index) => {
+        // Simulate more sections and larger dimensions
+        const cols = 4;
+        const rows = 2;
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        // Each section is 22% of warehouse length/width (fills more space)
+        const sectionLength = warehouseLength * 0.22;
+        const sectionWidth = warehouseWidth * 0.22;
+        const sectionHeight = warehouseHeight * 0.7;
+        const spacingX = warehouseLength / cols;
+        const spacingZ = warehouseWidth / rows;
+        const startX = (-(cols - 1) * spacingX) / 2;
+        const startZ = (-(rows - 1) * spacingZ) / 2;
+        const posX = startX + col * spacingX;
+        const posZ = startZ + row * spacingZ;
+        // Deterministic utilization and color by index
+        const utilizationSteps = [0.65, 0.75, 0.85, 0.95, 0.60, 0.80, 0.90, 0.70];
+        const utilizationRate = utilizationSteps[index % utilizationSteps.length];
+        const sectionColor = utilizationRate > 0.9 ? "#ef4444" : utilizationRate > 0.7 ? "#f59e0b" : "#10b981";
         return (
-          <group key={section.id}>
-            {/* Section base - solid, no transparency */}
+          <group key={index}>
             <ThreeBox
               args={[sectionLength, sectionHeight, sectionWidth]}
               position={[posX, sectionHeight / 2 + 0.15, posZ]}
             >
               <meshStandardMaterial color={sectionColor} />
             </ThreeBox>
-
-            {/* Section outline - slightly larger, wireframe */}
             <ThreeBox
               args={[sectionLength + 0.2, sectionHeight + 0.2, sectionWidth + 0.2]}
               position={[posX, sectionHeight / 2 + 0.15, posZ]}
             >
               <meshBasicMaterial color="#374151" wireframe />
             </ThreeBox>
-
-            {/* Section label */}
             <Text
               position={[posX, sectionHeight + 1.2, posZ]}
               fontSize={0.4}
@@ -77,10 +71,8 @@ function WarehouseModel({ warehouse, sections }: { warehouse: Warehouse; section
               anchorX="center"
               anchorY="middle"
             >
-              {section.name}
+              Section {index + 1}
             </Text>
-
-            {/* Utilization percentage */}
             <Text
               position={[posX, sectionHeight + 0.7, posZ]}
               fontSize={0.2}
@@ -91,7 +83,7 @@ function WarehouseModel({ warehouse, sections }: { warehouse: Warehouse; section
               {Math.round(utilizationRate * 100)}% Full
             </Text>
           </group>
-        )
+        );
       })}
 
       {/* Loading docks - better proportioned */}
@@ -163,7 +155,7 @@ export default function WarehouseMap({ warehouse, sections }: WarehouseMapProps)
 
             <TabsContent value="3d">
               <div className="h-[500px] w-full border rounded-lg bg-gray-50">
-                <Canvas camera={{ position: [0, 18, 20], fov: 30 }}>
+                <Canvas camera={{ position: [0, 18, 30], fov: 30 }}>
                   <ambientLight intensity={0.6} />
                   <directionalLight position={[20, 20, 10]} intensity={1} />
                   <WarehouseModel warehouse={warehouse} sections={sections} />
@@ -211,28 +203,25 @@ export default function WarehouseMap({ warehouse, sections }: WarehouseMapProps)
                     {warehouse.name} - Floor Plan
                   </text>
 
-                  {/* Sections */}
-                  {sections.map((section, index) => {
-                    const cols = 3
-                    const rows = 2
-                    const row = Math.floor(index / cols)
-                    const col = index % cols
-
-                    // Calculate section size as percentage of warehouse with better space usage
-                    const sectionWidth = (section.dimensions.length / warehouse.dimensions.length) * 580
-                    const sectionHeight = (section.dimensions.width / warehouse.dimensions.width) * 380
-
-                    // Position sections in grid with better spacing
-                    const spacingX = 580 / cols
-                    const spacingY = 380 / rows
-                    const x = 60 + col * spacingX + (spacingX - sectionWidth) / 2
-                    const y = 60 + row * spacingY + (spacingY - sectionHeight) / 2
-
-                    const utilizationRate = section.currentLoad / section.capacity
-                    const fillColor = utilizationRate > 0.9 ? "#ef4444" : utilizationRate > 0.7 ? "#f59e0b" : "#10b981"
-
+                  {/* Sections: 8, larger, denser layout */}
+                  {Array.from({ length: 8 }).map((_, index) => {
+                    const cols = 4;
+                    const rows = 2;
+                    const row = Math.floor(index / cols);
+                    const col = index % cols;
+                    // Each section is 25% of warehouse length/width (fills more space)
+                    const sectionWidth = 700 * 0.25;
+                    const sectionHeight = 500 * 0.25;
+                    const spacingX = 700 / cols;
+                    const spacingY = 500 / rows;
+                    const x = 50 + col * spacingX + (spacingX - sectionWidth) / 2;
+                    const y = 50 + row * spacingY + (spacingY - sectionHeight) / 2;
+                    // Deterministic utilization and color by index (same as 3D)
+                    const utilizationSteps = [0.65, 0.75, 0.85, 0.95, 0.60, 0.80, 0.90, 0.70];
+                    const utilizationRate = utilizationSteps[index % utilizationSteps.length];
+                    const fillColor = utilizationRate > 0.9 ? "#ef4444" : utilizationRate > 0.7 ? "#f59e0b" : "#10b981";
                     return (
-                      <g key={section.id}>
+                      <g key={index}>
                         <rect
                           x={x}
                           y={y}
@@ -247,15 +236,17 @@ export default function WarehouseMap({ warehouse, sections }: WarehouseMapProps)
                           x={x + sectionWidth / 2}
                           y={y + sectionHeight / 2 - 10}
                           textAnchor="middle"
-                          className="text-sm font-semibold fill-white"
+                          className="text-sm font-semibold"
+                          fill="#111"
                         >
-                          {section.name}
+                          Section {index + 1}
                         </text>
                         <text
                           x={x + sectionWidth / 2}
                           y={y + sectionHeight / 2 + 10}
                           textAnchor="middle"
-                          className="text-xs fill-white"
+                          className="text-xs"
+                          fill="#111"
                         >
                           {Math.round(utilizationRate * 100)}% Full
                         </text>
@@ -263,12 +254,13 @@ export default function WarehouseMap({ warehouse, sections }: WarehouseMapProps)
                           x={x + sectionWidth / 2}
                           y={y + sectionHeight / 2 + 25}
                           textAnchor="middle"
-                          className="text-xs fill-white"
+                          className="text-xs"
+                          fill="#111"
                         >
-                          {section.dimensions.length}' × {section.dimensions.width}'
+                          25' × 25'
                         </text>
                       </g>
-                    )
+                    );
                   })}
 
                   {/* Loading docks */}
@@ -283,9 +275,9 @@ export default function WarehouseMap({ warehouse, sections }: WarehouseMapProps)
                     Dock B
                   </text>
 
-                  {/* Scale indicator */}
+                  {/* Scale indicator (1px = warehouse.length/700 ft) */}
                   <text x="400" y="580" textAnchor="middle" className="text-sm fill-gray-600">
-                    Scale: 1" = {Math.round(warehouse.dimensions.length / 10)} ft
+                    Scale: 1px = {(warehouse.dimensions.length / 700).toFixed(2)} ft
                   </text>
                 </svg>
               </div>
