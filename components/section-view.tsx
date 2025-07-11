@@ -188,7 +188,7 @@ export default function SectionView({ section, warehouse, onBack }: SectionViewP
               </CardHeader>
               <CardContent>
                 <div className="h-96 w-full border rounded-lg bg-gray-50">
-                  <Canvas camera={{ position: [15, 10, 15], fov: 60 }}>
+                  <Canvas camera={{ position: [0, 5, 12], fov: 30 }}>
                     <ambientLight intensity={0.6} />
                     <directionalLight position={[10, 10, 5]} intensity={1} />
                     <SectionModel section={section} />
