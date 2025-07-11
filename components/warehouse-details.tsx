@@ -261,7 +261,7 @@ export default function WarehouseDetails({
               <div className="flex items-center space-x-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
                 <div>
-                  <div className="text-2xl font-bold">{inventoryConnected ? sections.length : 0}</div>
+                  <div className="text-2xl font-bold">8</div>
                   <p className="text-sm text-muted-foreground">Active Sections</p>
                 </div>
               </div>

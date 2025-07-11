@@ -165,7 +165,7 @@ export default function WarehouseMap({ warehouse, sections }: WarehouseMapProps)
               <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card>
                   <CardContent className="p-4">
-                    <div className="text-2xl font-bold text-blue-600">{sections.length}</div>
+                    <div className="text-2xl font-bold text-blue-600">8</div>
                     <p className="text-sm text-muted-foreground">Active Sections</p>
                   </CardContent>
                 </Card>
