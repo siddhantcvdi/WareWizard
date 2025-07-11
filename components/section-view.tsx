@@ -12,7 +12,38 @@ import type { Section, Warehouse } from "@/app/page"
 
 // 3D Section Component
 function SectionModel({ section }: { section: Section }) {
-  const boxesPerRow = Math.ceil(Math.sqrt(section.items.length))
+  // Generate more boxes for visualization (simulate more goods)
+  const totalBoxes = Math.max(section.items.length * 4, 24); // At least 24 boxes or 4x items
+  const boxesPerRow = Math.ceil(Math.sqrt(totalBoxes));
+  const boxesPerCol = Math.ceil(totalBoxes / boxesPerRow);
+  const spacingX = (section.dimensions.length / 10) / boxesPerRow;
+  const spacingZ = (section.dimensions.width / 10) / boxesPerCol;
+  const minBox = 0.5;
+  const maxBox = 1.2;
+
+  // Create a larger array of pseudo-items for display
+  // Helper to assign priority based on row (front=high, middle=medium, back=low)
+  function getPriority(row: number, totalRows: number) {
+    if (row < totalRows / 3) return "high";
+    if (row < (2 * totalRows) / 3) return "medium";
+    return "low";
+  }
+
+  const displayItems = Array.from({ length: totalBoxes }, (_, i) => {
+    const base = section.items[i % section.items.length];
+    const row = Math.floor(i / boxesPerRow);
+    // Vary the size for realism
+    return {
+      ...base,
+      id: `${base.id}-${Math.floor(i / section.items.length)}`,
+      dimensions: {
+        length: base.dimensions.length * (1.2 + 0.5 * Math.random()),
+        width: base.dimensions.width * (1.2 + 0.5 * Math.random()),
+        height: base.dimensions.height * (1.2 + 0.5 * Math.random()),
+      },
+      priority: getPriority(row, boxesPerCol),
+    };
+  });
 
   return (
     <group>
@@ -29,39 +60,47 @@ function SectionModel({ section }: { section: Section }) {
         <meshStandardMaterial color="#6b7280" transparent opacity={0.1} wireframe />
       </ThreeBox>
 
-      {/* Individual item boxes */}
-      {section.items.map((item, index) => {
-        const row = Math.floor(index / boxesPerRow)
-        const col = index % boxesPerRow
-        const spacing = 1.5
-        const startX = (-(boxesPerRow - 1) * spacing) / 2
-        const startZ = (-(Math.ceil(section.items.length / boxesPerRow) - 1) * spacing) / 2
-
+      {/* Individual item boxes (more, properly placed and scaled) */}
+      {displayItems.map((item, index) => {
+        const row = Math.floor(index / boxesPerRow);
+        const col = index % boxesPerRow;
+        // Place boxes in a grid, centered
+        const startX = (-(boxesPerRow - 1) * spacingX) / 2;
+        const startZ = (-(boxesPerCol - 1) * spacingZ) / 2;
+        const boxLength = Math.max(minBox, Math.min(maxBox, item.dimensions.length / 30));
+        const boxWidth = Math.max(minBox, Math.min(maxBox, item.dimensions.width / 30));
+        const boxHeight = Math.max(minBox, Math.min(maxBox, item.dimensions.height / 30));
         return (
           <group key={item.id}>
             <ThreeBox
-              args={[
-                Math.max(0.3, item.dimensions.length / 50),
-                Math.max(0.3, item.dimensions.height / 50),
-                Math.max(0.3, item.dimensions.width / 50),
+              args={[boxLength, boxHeight, boxWidth]}
+              position={[
+                startX + col * spacingX,
+                boxHeight / 2 + 0.1,
+                startZ + row * spacingZ,
               ]}
-              position={[startX + col * spacing, item.dimensions.height / 50 / 2 + 0.1, startZ + row * spacing]}
             >
               <meshStandardMaterial
                 color={item.priority === "high" ? "#ef4444" : item.priority === "medium" ? "#f59e0b" : "#10b981"}
               />
             </ThreeBox>
-            <Text
-              position={[startX + col * spacing, item.dimensions.height / 50 + 0.3, startZ + row * spacing]}
-              fontSize={0.1}
-              color="#1f2937"
-              anchorX="center"
-              anchorY="middle"
-            >
-              {item.id}
-            </Text>
+            {boxesPerRow < 12 && (
+              <Text
+                position={[
+                  startX + col * spacingX,
+                  boxHeight + 0.2,
+                  startZ + row * spacingZ,
+                ]}
+                fontSize={0.09}
+                color="#1f2937"
+                anchorX="center"
+                anchorY="middle"
+              >
+                {item.id}
+              </Text>
+            )}
           </group>
-        )
+        );
       })}
 
       {/* Section label */}
@@ -75,7 +114,7 @@ function SectionModel({ section }: { section: Section }) {
         {section.name}
       </Text>
     </group>
-  )
+  );
 }
 
 interface SectionViewProps {
@@ -188,7 +227,7 @@ export default function SectionView({ section, warehouse, onBack }: SectionViewP
               </CardHeader>
               <CardContent>
                 <div className="h-96 w-full border rounded-lg bg-gray-50">
-                  <Canvas camera={{ position: [0, 5, 12], fov: 30 }}>
+                  <Canvas camera={{ position: [0, 6, 8], fov: 30 }}>
                     <ambientLight intensity={0.6} />
                     <directionalLight position={[10, 10, 5]} intensity={1} />
                     <SectionModel section={section} />
