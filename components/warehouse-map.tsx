@@ -163,7 +163,7 @@ export default function WarehouseMap({ warehouse, sections }: WarehouseMapProps)
 
             <TabsContent value="3d">
               <div className="h-[500px] w-full border rounded-lg bg-gray-50">
-                <Canvas camera={{ position: [0, 10, 25], fov: 45 }}>
+                <Canvas camera={{ position: [0, 18, 20], fov: 30 }}>
                   <ambientLight intensity={0.6} />
                   <directionalLight position={[20, 20, 10]} intensity={1} />
                   <WarehouseModel warehouse={warehouse} sections={sections} />
