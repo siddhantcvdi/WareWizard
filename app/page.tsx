@@ -64,8 +64,8 @@ export default function WalmartWarehouseSystem() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([
     {
       id: "WH-001",
-      name: "Dallas Distribution Center",
-      location: "Dallas, TX",
+      name: "Delhi Distribution Center",
+      location: "Delhi",
       type: "Distribution Center",
       dimensions: { length: 500, width: 300, height: 30 },
       status: "active",
@@ -73,12 +73,21 @@ export default function WalmartWarehouseSystem() {
     },
     {
       id: "WH-002",
-      name: "Houston Fulfillment Center",
-      location: "Houston, TX",
+      name: "Bangalore Fulfillment Center",
+      location: "Bangalore",
       type: "Fulfillment Center",
       dimensions: { length: 400, width: 250, height: 25 },
       status: "active",
       createdAt: "2024-02-10",
+    },
+    {
+      id: "WH-003",
+      name: "Mumbai Storage Hub",
+      location: "Mumbai",
+      type: "Storage Hub",
+      dimensions: { length: 450, width: 280, height: 28 },
+      status: "active",
+      createdAt: "2024-03-05",
     },
   ])
 
